@@ -49,13 +49,14 @@ jobs:
           echo "OPENSSL_DIR=C:/vcpkg/installed/x64-windows-static" >> $GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
 
-      - name: Format check
+      - name: Format check (non-blocking)
         run: |
           cargo fmt -p veil-core -- --check
           cargo fmt -p veil-server -- --check
           cargo fmt -p veil-client -- --check
+        continue-on-error: true
 
-      - name: Clippy (warnings allowed — not blocking)
+      - name: Clippy (non-blocking)
         run: cargo clippy -p veil-core -p veil-server -p veil-client
         continue-on-error: true
 

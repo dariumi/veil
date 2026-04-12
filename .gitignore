@@ -50,3 +50,8 @@ test-data/
 
 # ── ТЗ (internal document, not for public) ───────────────────────────────────
 ТЗ.txt
+
+# ── Build logs (local debug files) ───────────────────────────────────────────
+bild-logs/
+build-logs/
+*.zip
