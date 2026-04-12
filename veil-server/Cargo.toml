@@ -1,0 +1,44 @@
+[package]
+name = "veil-server"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "veil-server"
+path = "src/main.rs"
+
+[dependencies]
+veil-core = { path = "../veil-core" }
+
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+quinn = { workspace = true }
+h3 = { workspace = true }
+h3-quinn = { workspace = true }
+rustls = { workspace = true }
+rustls-pemfile = { workspace = true }
+rcgen = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+bytes = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+clap = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+rand = { workspace = true }
+ipnet = { workspace = true }
+socket2 = { workspace = true }
+hickory-resolver = { workspace = true }
+ring = { workspace = true }
+base64 = { workspace = true }
+dashmap = "6"
+tokio-rustls = "0.26"

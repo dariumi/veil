@@ -1,0 +1,52 @@
+# ── Rust ──────────────────────────────────────────────────────────────────────
+/target/
+**/target/
+Cargo.lock
+
+# ── Secrets & configs (NEVER commit real configs) ────────────────────────────
+config/
+config.toml
+server.toml
+*.key
+*.pem
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+
+# ── TLS certificates ──────────────────────────────────────────────────────────
+*.crt
+*.cer
+*.der
+
+# ── Node / npm ────────────────────────────────────────────────────────────────
+node_modules/
+veil-app/node_modules/
+dist/
+.parcel-cache/
+
+# ── Tauri build output ────────────────────────────────────────────────────────
+veil-app/src-tauri/target/
+veil-app/src-tauri/gen/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+/tmp/
+test-data/
+
+# ── ТЗ (internal document, not for public) ───────────────────────────────────
+ТЗ.txt
