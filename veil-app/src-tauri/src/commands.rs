@@ -221,7 +221,7 @@ pub async fn server_add_user(
 
 #[tauri::command]
 pub async fn server_list_users(
-    state: State<'_, AppStateRef>,
+    _state: State<'_, AppStateRef>,
 ) -> Result<Vec<UserToken>, String> {
     Ok(vec![])
 }
@@ -236,7 +236,7 @@ pub struct Session {
 
 #[tauri::command]
 pub async fn server_get_sessions(
-    state: State<'_, AppStateRef>,
+    _state: State<'_, AppStateRef>,
 ) -> Result<Vec<Session>, String> {
     Ok(vec![])
 }
