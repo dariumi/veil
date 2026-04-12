@@ -1,7 +1,7 @@
 # ── Rust ──────────────────────────────────────────────────────────────────────
 /target/
 **/target/
-Cargo.lock
+# Cargo.lock intentionally committed (binary crates)
 
 # ── Secrets & configs (NEVER commit real configs) ────────────────────────────
 config/
