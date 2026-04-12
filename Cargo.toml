@@ -3,14 +3,13 @@ members = [
     "veil-core",
     "veil-server",
     "veil-client",
-    "veil-app/src-tauri",
 ]
 resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Veil Project"]
+authors = ["dariumi"]
 license = "MIT"
 
 [workspace.dependencies]
