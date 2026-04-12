@@ -21,7 +21,9 @@ impl DnsProtection {
         Self::set_windows_dns(server_dns).await?;
 
         info!(dns = %server_dns, "DNS protection activated");
-        Ok(Self { original_resolvers: original })
+        Ok(Self {
+            original_resolvers: original,
+        })
     }
 
     /// Restore original DNS settings
@@ -47,7 +49,8 @@ impl DnsProtection {
 
     #[cfg(target_os = "linux")]
     fn restore_resolv_conf(resolvers: &[String]) -> Result<()> {
-        let content = resolvers.iter()
+        let content = resolvers
+            .iter()
             .map(|r| format!("nameserver {}\n", r))
             .collect::<String>();
         std::fs::write("/etc/resolv.conf", content)?;
@@ -60,7 +63,8 @@ impl DnsProtection {
         // networksetup -setdnsservers <interface> <dns>
         Command::new("networksetup")
             .args(["-setdnsservers", "Wi-Fi", nameserver])
-            .output().await?;
+            .output()
+            .await?;
         Ok(())
     }
 

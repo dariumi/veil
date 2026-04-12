@@ -9,8 +9,8 @@ mod dns;
 mod killswitch;
 mod modes;
 mod transport;
-mod tunnel;
 mod tui;
+mod tunnel;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -157,13 +157,18 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive(format!("veil={}", log_level).parse()?)
+                .add_directive(format!("veil={}", log_level).parse()?),
         )
         .compact()
         .init();
 
     match cli.command {
-        Commands::Connect { server, token, proxy, profile } => {
+        Commands::Connect {
+            server,
+            token,
+            proxy,
+            profile,
+        } => {
             modes::connect(server, token, proxy, &profile).await?;
         }
 
@@ -181,10 +186,9 @@ async fn main() -> Result<()> {
 
         Commands::Server { action } => {
             let cfg = config::ClientConfig::load_or_default(&cli.config)?;
-            let server_url = cfg.management_url()
-                .ok_or_else(|| anyhow::anyhow!(
-                    "No server configured. Run `veil deploy install` first."
-                ))?;
+            let server_url = cfg.management_url().ok_or_else(|| {
+                anyhow::anyhow!("No server configured. Run `veil deploy install` first.")
+            })?;
             deploy::server_manage(action, &server_url, &cfg.admin_token()?).await?;
         }
 

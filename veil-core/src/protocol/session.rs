@@ -1,7 +1,7 @@
+use super::{TrafficProfile, TransportMode};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
-use chrono::{DateTime, Utc};
-use super::{TransportMode, TrafficProfile};
 
 pub type SessionId = String;
 

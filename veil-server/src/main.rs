@@ -3,8 +3,8 @@ use clap::Parser;
 use std::path::PathBuf;
 use tracing::{info, warn};
 
-mod auth;
 mod admin;
+mod auth;
 mod config;
 mod obfuscation;
 mod relay;
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("veil_server=info".parse()?)
+                .add_directive("veil_server=info".parse()?),
         )
         .json()
         .init();

@@ -87,7 +87,9 @@ impl KillSwitch {
 impl Drop for KillSwitch {
     fn drop(&mut self) {
         if self.active {
-            tracing::warn!("KillSwitch dropped without explicit deactivate — traffic may be blocked");
+            tracing::warn!(
+                "KillSwitch dropped without explicit deactivate — traffic may be blocked"
+            );
         }
     }
 }

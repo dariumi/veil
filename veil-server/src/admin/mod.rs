@@ -52,11 +52,8 @@ impl AdminServer {
             ))
             .with_state(state);
 
-        let addr: SocketAddr = format!(
-            "{}:{}",
-            self.config.admin.bind,
-            self.config.admin.port
-        ).parse()?;
+        let addr: SocketAddr =
+            format!("{}:{}", self.config.admin.bind, self.config.admin.port).parse()?;
 
         info!(addr = %addr, "Admin API listening");
 
@@ -72,13 +69,15 @@ async fn admin_auth_middleware(
     request: axum::extract::Request,
     next: Next,
 ) -> impl IntoResponse {
-    let auth_header = headers
-        .get("X-Admin-Token")
-        .and_then(|v| v.to_str().ok());
+    let auth_header = headers.get("X-Admin-Token").and_then(|v| v.to_str().ok());
 
     match auth_header {
         Some(t) if t == token => next.run(request).await.into_response(),
-        _ => (StatusCode::UNAUTHORIZED, Json(json!({"error": "unauthorized"}))).into_response(),
+        _ => (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({"error": "unauthorized"})),
+        )
+            .into_response(),
     }
 }
 
@@ -101,10 +100,7 @@ async fn list_sessions(State(state): State<AppState>) -> Json<Value> {
     Json(json!({"count": count, "sessions": []}))
 }
 
-async fn kill_session(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-) -> impl IntoResponse {
+async fn kill_session(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
     state.auth.remove_session(&id).await;
     Json(json!({"removed": id}))
 }

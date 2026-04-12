@@ -5,9 +5,9 @@ pub mod frame;
 pub mod handshake;
 pub mod session;
 
-pub use frame::{Frame, FrameType, ChannelId};
-pub use handshake::{ClientHello, ServerHello, AuthRequest, AuthResponse};
-pub use session::{Session, SessionState, SessionId};
+pub use frame::{ChannelId, Frame, FrameType};
+pub use handshake::{AuthRequest, AuthResponse, ClientHello, ServerHello};
+pub use session::{Session, SessionId, SessionState};
 
 /// Protocol version negotiation
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -18,7 +18,11 @@ pub struct ProtocolVersion {
 }
 
 impl ProtocolVersion {
-    pub const CURRENT: Self = Self { major: 0, minor: 1, patch: 0 };
+    pub const CURRENT: Self = Self {
+        major: 0,
+        minor: 1,
+        patch: 0,
+    };
 
     pub fn is_compatible(&self, other: &Self) -> bool {
         self.major == other.major

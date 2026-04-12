@@ -16,7 +16,9 @@ impl TunDevice {
         // Platform-specific TUN creation:
         // Linux/macOS: use `tun` crate
         // Windows: use `wintun` crate
-        Ok(Self { name: name.to_string() })
+        Ok(Self {
+            name: name.to_string(),
+        })
     }
 
     pub async fn configure(

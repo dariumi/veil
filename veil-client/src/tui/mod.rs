@@ -35,13 +35,16 @@ async fn setup_connect_mode() -> Result<()> {
         .with_prompt("Server address (host:port)")
         .interact_text()?;
 
-    let token: String = Password::new()
-        .with_prompt("Access token")
-        .interact()?;
+    let token: String = Password::new().with_prompt("Access token").interact()?;
 
     let profile = Select::new()
         .with_prompt("Traffic profile")
-        .items(&["Balanced", "Realtime (low latency)", "Throughput", "Stealth"])
+        .items(&[
+            "Balanced",
+            "Realtime (low latency)",
+            "Throughput",
+            "Stealth",
+        ])
         .default(0)
         .interact()?;
 
@@ -51,7 +54,10 @@ async fn setup_connect_mode() -> Result<()> {
     println!("{}", style("Configuration saved.").green());
     println!();
     println!("Connect with:");
-    println!("  veil connect {} --token {} --profile {}", server, token, profile_name);
+    println!(
+        "  veil connect {} --token {} --profile {}",
+        server, token, profile_name
+    );
 
     Ok(())
 }
@@ -99,12 +105,26 @@ async fn setup_deploy_mode() -> Result<()> {
     println!();
     println!("Run:");
     if let Some(key) = key_path {
-        println!("  veil deploy install {} --veil-port {} --key {}", host, port,
-            if domain.is_empty() { String::new() } else { format!("--domain {} ", domain) } + &key
+        println!(
+            "  veil deploy install {} --veil-port {} --key {}",
+            host,
+            port,
+            if domain.is_empty() {
+                String::new()
+            } else {
+                format!("--domain {} ", domain)
+            } + &key
         );
     } else {
-        let domain_arg = if domain.is_empty() { String::new() } else { format!(" --domain {}", domain) };
-        println!("  veil deploy install {} --veil-port {}{}", host, port, domain_arg);
+        let domain_arg = if domain.is_empty() {
+            String::new()
+        } else {
+            format!(" --domain {}", domain)
+        };
+        println!(
+            "  veil deploy install {} --veil-port {}{}",
+            host, port, domain_arg
+        );
     }
 
     Ok(())

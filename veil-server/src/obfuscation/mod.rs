@@ -1,6 +1,6 @@
-use bytes::{Bytes, BytesMut, BufMut};
+use bytes::{BufMut, Bytes, BytesMut};
 use rand::Rng;
-use veil_core::protocol::frame::{Frame, FrameType, ChannelId};
+use veil_core::protocol::frame::{ChannelId, Frame, FrameType};
 
 /// Common HTTPS response sizes to normalize packet sizes to
 const HTTPS_COMMON_SIZES: &[usize] = &[576, 1024, 1280, 1460, 2048, 4096, 8192];
@@ -13,7 +13,10 @@ pub struct ObfuscationLayer {
 
 impl ObfuscationLayer {
     pub fn new(padding_enabled: bool, size_normalization: bool) -> Self {
-        Self { padding_enabled, size_normalization }
+        Self {
+            padding_enabled,
+            size_normalization,
+        }
     }
 
     /// Wrap an outgoing frame with optional padding

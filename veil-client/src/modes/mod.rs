@@ -16,15 +16,17 @@ pub async fn connect(
         "127.0.0.1:443".to_string()
     });
 
-    let token = token.unwrap_or_else(|| {
-        std::env::var("VEIL_TOKEN").unwrap_or_default()
-    });
+    let token = token.unwrap_or_else(|| std::env::var("VEIL_TOKEN").unwrap_or_default());
 
     if token.is_empty() {
         anyhow::bail!("Token required. Use --token or set VEIL_TOKEN env var.");
     }
 
-    println!("Connecting to {} ({})", server, if proxy_mode { "proxy" } else { "VPN" });
+    println!(
+        "Connecting to {} ({})",
+        server,
+        if proxy_mode { "proxy" } else { "VPN" }
+    );
 
     if proxy_mode {
         proxy::run(&server, &token, profile).await

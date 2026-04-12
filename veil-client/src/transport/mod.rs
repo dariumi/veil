@@ -55,7 +55,9 @@ impl VeilConnection {
                     let mut buf = vec![0u8; 32768];
                     loop {
                         let n = tokio::io::AsyncReadExt::read(&mut cr, &mut buf).await?;
-                        if n == 0 { break; }
+                        if n == 0 {
+                            break;
+                        }
                         send.write_all(&buf[..n]).await?;
                     }
                     send.finish()?;
@@ -65,7 +67,9 @@ impl VeilConnection {
                     let mut buf = vec![0u8; 32768];
                     loop {
                         let n = recv.read(&mut buf).await?.unwrap_or(0);
-                        if n == 0 { break; }
+                        if n == 0 {
+                            break;
+                        }
                         tokio::io::AsyncWriteExt::write_all(&mut cw, &buf[..n]).await?;
                     }
                     Ok::<_, anyhow::Error>(())
@@ -99,7 +103,7 @@ impl VeilConnection {
 async fn connect_quic(server: &str, token: &str, profile: &str) -> Result<VeilConnection> {
     let tls_config = build_client_tls()?;
     let quinn_config = QuinnClientConfig::new(Arc::new(
-        quinn::crypto::rustls::QuicClientConfig::try_from(tls_config)?
+        quinn::crypto::rustls::QuicClientConfig::try_from(tls_config)?,
     ));
 
     let mut endpoint = Endpoint::client("0.0.0.0:0".parse()?)?;
@@ -138,7 +142,8 @@ async fn authenticate_quic(conn: &quinn::Connection, token: &str) -> Result<Stri
     let resp: serde_json::Value = serde_json::from_slice(&buf[..n])?;
 
     if resp.get("status").and_then(|s| s.as_str()) == Some("ok") {
-        let session_id = resp.get("session_id")
+        let session_id = resp
+            .get("session_id")
             .and_then(|s| s.as_str())
             .unwrap_or("")
             .to_string();

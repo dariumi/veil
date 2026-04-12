@@ -3,4 +3,4 @@ pub mod crypto;
 pub mod error;
 pub mod protocol;
 
-pub use error::{VeilError, Result};
+pub use error::{Result, VeilError};

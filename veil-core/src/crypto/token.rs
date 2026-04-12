@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Duration, Utc};
-use crate::error::{Result, VeilError};
 use super::{generate_token, hmac_sha256, verify_hmac_sha256};
+use crate::error::{Result, VeilError};
+use chrono::{DateTime, Duration, Utc};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessToken {
@@ -46,7 +46,9 @@ pub struct TokenManager {
 
 impl TokenManager {
     pub fn new(signing_key: &[u8]) -> Self {
-        Self { signing_key: signing_key.to_vec() }
+        Self {
+            signing_key: signing_key.to_vec(),
+        }
     }
 
     /// Create a signed invite token (short-lived admission token)
@@ -69,7 +71,9 @@ impl TokenManager {
             .map_err(|_| VeilError::AuthFailed("Invalid token signature".into()))?;
 
         if !verify_hmac_sha256(&self.signing_key, payload.as_bytes(), &sig) {
-            return Err(VeilError::AuthFailed("Token signature verification failed".into()));
+            return Err(VeilError::AuthFailed(
+                "Token signature verification failed".into(),
+            ));
         }
 
         // Check expiry
@@ -92,10 +96,12 @@ mod hex {
         bytes.iter().map(|b| format!("{:02x}", b)).collect()
     }
     pub fn decode(s: &str) -> Result<Vec<u8>, ()> {
-        if s.len() % 2 != 0 { return Err(()); }
+        if s.len() % 2 != 0 {
+            return Err(());
+        }
         (0..s.len())
             .step_by(2)
-            .map(|i| u8::from_str_radix(&s[i..i+2], 16).map_err(|_| ()))
+            .map(|i| u8::from_str_radix(&s[i..i + 2], 16).map_err(|_| ()))
             .collect()
     }
 }

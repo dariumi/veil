@@ -6,9 +6,9 @@ use tracing::{error, info};
 pub mod quic;
 pub mod tls_tcp;
 
-use crate::config::ServerConfig;
 use crate::admin::AdminServer;
 use crate::auth::AuthManager;
+use crate::config::ServerConfig;
 
 /// Top-level server: spawns QUIC + TCP listeners + Admin API
 pub struct Server {

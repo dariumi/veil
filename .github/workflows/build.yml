@@ -50,7 +50,10 @@ jobs:
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
 
       - name: Format check
-        run: cargo fmt -p veil-core -p veil-server -p veil-client -- --check
+        run: |
+          cargo fmt -p veil-core -- --check
+          cargo fmt -p veil-server -- --check
+          cargo fmt -p veil-client -- --check
 
       - name: Clippy (warnings allowed — not blocking)
         run: cargo clippy -p veil-core -p veil-server -p veil-client

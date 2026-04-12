@@ -11,11 +11,7 @@ use crate::config::ServerConfig;
 use crate::relay::RelayEngine;
 
 pub async fn run_listener(config: Arc<ServerConfig>, auth: Arc<AuthManager>) -> Result<()> {
-    let addr: SocketAddr = format!(
-        "{}:{}",
-        config.listen.bind,
-        config.listen.tcp_port
-    ).parse()?;
+    let addr: SocketAddr = format!("{}:{}", config.listen.bind, config.listen.tcp_port).parse()?;
 
     let listener = TcpListener::bind(addr).await?;
     info!(addr = %addr, "TCP/TLS fallback listener ready");
@@ -83,12 +79,15 @@ fn build_tls_config(config: &ServerConfig) -> Result<Arc<RustlsConfig>> {
     let cert_file = File::open(&config.tls.cert_path)?;
     let key_file = File::open(&config.tls.key_path)?;
 
-    let certs: Vec<_> = certs(&mut BufReader::new(cert_file))
-        .collect::<std::result::Result<_, _>>()?;
+    let certs: Vec<_> =
+        certs(&mut BufReader::new(cert_file)).collect::<std::result::Result<_, _>>()?;
     let key = private_key(&mut BufReader::new(key_file))?
         .ok_or_else(|| anyhow::anyhow!("No private key"))?;
 
-    let alpn: Vec<Vec<u8>> = config.tls.alpn.iter()
+    let alpn: Vec<Vec<u8>> = config
+        .tls
+        .alpn
+        .iter()
         .map(|a| a.as_bytes().to_vec())
         .collect();
 

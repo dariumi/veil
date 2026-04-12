@@ -59,9 +59,9 @@ impl ClientConfig {
     }
 
     pub fn management_url(&self) -> Option<String> {
-        self.managed_server.as_ref().map(|s| {
-            format!("https://{}:{}/api/v1", s.host, s.veil_port)
-        })
+        self.managed_server
+            .as_ref()
+            .map(|s| format!("https://{}:{}/api/v1", s.host, s.veil_port))
     }
 
     pub fn admin_token(&self) -> Result<String> {
@@ -82,10 +82,7 @@ fn expand_tilde(path: &Path) -> PathBuf {
     path.to_path_buf()
 }
 
-pub fn handle_config_command(
-    action: Option<ConfigCommands>,
-    config_path: &Path,
-) -> Result<()> {
+pub fn handle_config_command(action: Option<ConfigCommands>, config_path: &Path) -> Result<()> {
     let config = ClientConfig::load_or_default(config_path)?;
 
     match action {

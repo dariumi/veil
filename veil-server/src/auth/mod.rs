@@ -2,13 +2,13 @@ use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{warn, debug};
+use tracing::{debug, warn};
 
+use crate::config::AuthConfig;
 use veil_core::crypto::{sha256, token::TokenManager};
+use veil_core::error::VeilError;
 use veil_core::protocol::session::{Session, SessionId, SessionState};
 use veil_core::protocol::TransportMode;
-use veil_core::error::VeilError;
-use crate::config::AuthConfig;
 
 pub struct AuthManager {
     config: AuthConfig,
@@ -24,7 +24,9 @@ impl AuthManager {
         let token_manager = TokenManager::new(&signing_key);
 
         // Build lookup table for fast token verification
-        let token_lookup = config.tokens.iter()
+        let token_lookup = config
+            .tokens
+            .iter()
             .enumerate()
             .map(|(i, t)| (t.token_hash.clone(), i))
             .collect();
@@ -41,8 +43,8 @@ impl AuthManager {
     pub async fn authenticate(&self, payload: &[u8]) -> Result<Session> {
         use veil_core::protocol::handshake::AuthRequest;
 
-        let req: AuthRequest = serde_json::from_slice(payload)
-            .map_err(|_| anyhow::anyhow!("Invalid auth request"))?;
+        let req: AuthRequest =
+            serde_json::from_slice(payload).map_err(|_| anyhow::anyhow!("Invalid auth request"))?;
 
         // Rate limiting / tarpit for failed attempts would be applied here
 
@@ -68,7 +70,8 @@ impl AuthManager {
 
             // Check expiry
             if let Some(exp_str) = &entry.expires_at {
-                let exp: chrono::DateTime<chrono::Utc> = exp_str.parse()
+                let exp: chrono::DateTime<chrono::Utc> = exp_str
+                    .parse()
                     .map_err(|_| anyhow::anyhow!("Invalid expiry date"))?;
                 if chrono::Utc::now() > exp {
                     warn!(token_id = %entry.id, "Expired token used");
@@ -80,16 +83,17 @@ impl AuthManager {
             let mut session = Session::new(session_id.clone(), TransportMode::QuicHttp3);
             session.state = SessionState::Active;
 
-            self.sessions.write().await.insert(session_id, session.clone());
+            self.sessions
+                .write()
+                .await
+                .insert(session_id, session.clone());
             debug!(token_id = %entry.id, session_id = %session.id, "Session created");
 
             Ok(session)
         } else {
             // Tarpit: delay response to slow down brute-force
             if self.config.tarpit_ms > 0 {
-                tokio::time::sleep(
-                    std::time::Duration::from_millis(self.config.tarpit_ms)
-                ).await;
+                tokio::time::sleep(std::time::Duration::from_millis(self.config.tarpit_ms)).await;
             }
             warn!("Invalid token presented");
             Err(VeilError::AuthFailed("Invalid token".into()).into())
@@ -129,8 +133,10 @@ mod hex {
         }
         (0..s.len())
             .step_by(2)
-            .map(|i| u8::from_str_radix(&s[i..i+2], 16)
-                .map_err(|e| anyhow::anyhow!("invalid hex: {}", e)))
+            .map(|i| {
+                u8::from_str_radix(&s[i..i + 2], 16)
+                    .map_err(|e| anyhow::anyhow!("invalid hex: {}", e))
+            })
             .collect()
     }
 }

@@ -1,6 +1,9 @@
-use ring::{aead, digest, hmac, rand::{SecureRandom, SystemRandom}};
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use crate::error::{Result, VeilError};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use ring::{
+    aead, digest, hmac,
+    rand::{SecureRandom, SystemRandom},
+};
 
 pub mod token;
 pub use token::{AccessToken, TokenManager};
@@ -45,24 +48,36 @@ impl AeadCipher {
     pub fn new(key_bytes: &[u8]) -> Result<Self> {
         let unbound = aead::UnboundKey::new(&aead::AES_256_GCM, key_bytes)
             .map_err(|_| VeilError::Crypto("Invalid key length".into()))?;
-        Ok(Self { key: aead::LessSafeKey::new(unbound) })
+        Ok(Self {
+            key: aead::LessSafeKey::new(unbound),
+        })
     }
 
     pub fn encrypt(&self, nonce_bytes: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>> {
         let nonce = aead::Nonce::assume_unique_for_key(*nonce_bytes);
         let aad = aead::Aad::from(aad);
         let mut in_out = plaintext.to_vec();
-        self.key.seal_in_place_append_tag(nonce, aad, &mut in_out)
+        self.key
+            .seal_in_place_append_tag(nonce, aad, &mut in_out)
             .map_err(|_| VeilError::Crypto("Encryption failed".into()))?;
         Ok(in_out)
     }
 
-    pub fn decrypt(&self, nonce_bytes: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
+    pub fn decrypt(
+        &self,
+        nonce_bytes: &[u8; 12],
+        aad: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<Vec<u8>> {
         let nonce = aead::Nonce::assume_unique_for_key(*nonce_bytes);
         let aad = aead::Aad::from(aad);
         let mut in_out = ciphertext.to_vec();
-        let plaintext = self.key.open_in_place(nonce, aad, &mut in_out)
-            .map_err(|_| VeilError::Crypto("Decryption failed / authentication tag mismatch".into()))?;
+        let plaintext = self
+            .key
+            .open_in_place(nonce, aad, &mut in_out)
+            .map_err(|_| {
+                VeilError::Crypto("Decryption failed / authentication tag mismatch".into())
+            })?;
         Ok(plaintext.to_vec())
     }
 }

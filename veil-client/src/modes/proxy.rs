@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::net::SocketAddr;
-use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
 use tracing::{debug, info};
 
 use crate::transport::VeilConnection;
@@ -30,10 +30,7 @@ pub async fn run(server: &str, token: &str, profile: &str) -> Result<()> {
     Ok(())
 }
 
-async fn run_socks5(
-    addr: SocketAddr,
-    conn: std::sync::Arc<VeilConnection>,
-) -> Result<()> {
+async fn run_socks5(addr: SocketAddr, conn: std::sync::Arc<VeilConnection>) -> Result<()> {
     let listener = TcpListener::bind(addr).await?;
     loop {
         let (stream, client_addr) = listener.accept().await?;
@@ -86,7 +83,9 @@ fn parse_socks5_dest(buf: &[u8]) -> Result<String> {
     match buf[3] {
         0x01 => {
             // IPv4
-            if buf.len() < 10 { anyhow::bail!("Short IPv4 request"); }
+            if buf.len() < 10 {
+                anyhow::bail!("Short IPv4 request");
+            }
             let ip = format!("{}.{}.{}.{}", buf[4], buf[5], buf[6], buf[7]);
             let port = u16::from_be_bytes([buf[8], buf[9]]);
             Ok(format!("{}:{}", ip, port))
@@ -94,7 +93,9 @@ fn parse_socks5_dest(buf: &[u8]) -> Result<String> {
         0x03 => {
             // Domain
             let len = buf[4] as usize;
-            if buf.len() < 5 + len + 2 { anyhow::bail!("Short domain request"); }
+            if buf.len() < 5 + len + 2 {
+                anyhow::bail!("Short domain request");
+            }
             let domain = std::str::from_utf8(&buf[5..5 + len])?;
             let port = u16::from_be_bytes([buf[5 + len], buf[5 + len + 1]]);
             Ok(format!("{}:{}", domain, port))
@@ -103,10 +104,7 @@ fn parse_socks5_dest(buf: &[u8]) -> Result<String> {
     }
 }
 
-async fn run_http_proxy(
-    addr: SocketAddr,
-    conn: std::sync::Arc<VeilConnection>,
-) -> Result<()> {
+async fn run_http_proxy(addr: SocketAddr, conn: std::sync::Arc<VeilConnection>) -> Result<()> {
     let listener = TcpListener::bind(addr).await?;
     loop {
         let (stream, client_addr) = listener.accept().await?;
@@ -132,12 +130,16 @@ async fn handle_http_connect(
     let first_line = request.lines().next().unwrap_or("");
     let parts: Vec<&str> = first_line.splitn(3, ' ').collect();
     if parts.len() < 2 || parts[0] != "CONNECT" {
-        stream.write_all(b"HTTP/1.1 405 Method Not Allowed\r\n\r\n").await?;
+        stream
+            .write_all(b"HTTP/1.1 405 Method Not Allowed\r\n\r\n")
+            .await?;
         return Ok(());
     }
 
     let dest = parts[1].to_string();
-    stream.write_all(b"HTTP/1.1 200 Connection Established\r\n\r\n").await?;
+    stream
+        .write_all(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+        .await?;
 
     conn.relay_tcp(dest, stream).await?;
     Ok(())

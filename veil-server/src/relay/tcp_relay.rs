@@ -35,7 +35,9 @@ pub async fn handle_stream(
         let mut buf = vec![0u8; 32768];
         loop {
             let n = recv.read(&mut buf).await?.unwrap_or(0);
-            if n == 0 { break; }
+            if n == 0 {
+                break;
+            }
             target_tx.write_all(&buf[..n]).await?;
         }
         target_tx.shutdown().await?;
@@ -46,7 +48,9 @@ pub async fn handle_stream(
         let mut buf = vec![0u8; 32768];
         loop {
             let n = target_rx.read(&mut buf).await?;
-            if n == 0 { break; }
+            if n == 0 {
+                break;
+            }
             send.write_all(&buf[..n]).await?;
         }
         send.finish()?;
@@ -62,5 +66,9 @@ fn is_destination_allowed(dest: &str, config: &ServerConfig) -> bool {
         return true; // Allow all
     }
     // TODO: implement ACL matching (CIDR + hostname patterns)
-    config.node.allowed_destinations.iter().any(|rule| dest.contains(rule.as_str()))
+    config
+        .node
+        .allowed_destinations
+        .iter()
+        .any(|rule| dest.contains(rule.as_str()))
 }

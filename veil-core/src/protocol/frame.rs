@@ -1,6 +1,6 @@
+use crate::error::{Result, VeilError};
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use serde::{Deserialize, Serialize};
-use crate::error::{Result, VeilError};
 
 /// Logical channel identifiers
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -70,7 +70,10 @@ impl TryFrom<u8> for FrameType {
             0x50 => Ok(Self::ConfigPush),
             0x51 => Ok(Self::ConfigAck),
             0xFF => Ok(Self::Padding),
-            _ => Err(VeilError::Protocol(format!("Unknown frame type: 0x{:02x}", v))),
+            _ => Err(VeilError::Protocol(format!(
+                "Unknown frame type: 0x{:02x}",
+                v
+            ))),
         }
     }
 }
@@ -138,6 +141,11 @@ impl Frame {
         }
         let payload = buf.copy_to_bytes(length);
 
-        Ok(Self { version, frame_type, channel_id, payload })
+        Ok(Self {
+            version,
+            frame_type,
+            channel_id,
+            payload,
+        })
     }
 }

@@ -2,8 +2,8 @@ use anyhow::Result;
 use tracing::info;
 
 use crate::killswitch::KillSwitch;
-use crate::tunnel::TunDevice;
 use crate::transport::VeilConnection;
+use crate::tunnel::TunDevice;
 
 /// Run in full VPN (TUN) mode
 pub async fn run(server: &str, token: &str, profile: &str) -> Result<()> {
@@ -21,11 +21,8 @@ pub async fn run(server: &str, token: &str, profile: &str) -> Result<()> {
 
     // Create TUN device
     let tun = TunDevice::create("veil0").await?;
-    tun.configure(
-        "10.10.0.2".parse()?,
-        "10.10.0.1".parse()?,
-        24,
-    ).await?;
+    tun.configure("10.10.0.2".parse()?, "10.10.0.1".parse()?, 24)
+        .await?;
 
     println!("VPN tunnel active: 10.10.0.2/24");
     println!("Press Ctrl+C to disconnect");

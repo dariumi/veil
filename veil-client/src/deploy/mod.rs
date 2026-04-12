@@ -19,7 +19,15 @@ pub async fn handle(action: DeployCommands) -> Result<()> {
             veil_port,
             domain,
         } => {
-            install_server(&host, ssh_port, password.as_deref(), key.as_deref(), veil_port, domain.as_deref()).await
+            install_server(
+                &host,
+                ssh_port,
+                password.as_deref(),
+                key.as_deref(),
+                veil_port,
+                domain.as_deref(),
+            )
+            .await
         }
         DeployCommands::Uninstall { host } => uninstall_server(&host).await,
         DeployCommands::Status { host } => server_ssh_status(&host).await,
@@ -55,7 +63,8 @@ async fn install_server(
     if !has_docker {
         println!("{} Docker not found — installing...", style("→").cyan());
         let pb = progress_bar("Installing Docker");
-        ssh.run("curl -fsSL https://get.docker.com | sh").await
+        ssh.run("curl -fsSL https://get.docker.com | sh")
+            .await
             .map_err(|e| anyhow::anyhow!("Docker install failed: {}", e))?;
         ssh.run("systemctl enable --now docker").await?;
         pb.finish_with_message("installed");
@@ -76,7 +85,8 @@ async fn install_server(
         None => format!("# sni = \"example.com\"  # set a domain for better camouflage"),
     };
 
-    let config = format!(r#"[node]
+    let config = format!(
+        r#"[node]
 role = "all"
 allowed_destinations = []
 
@@ -129,14 +139,16 @@ padding_enabled = true
 size_normalization = true
 idle_noise = false
 burst_shaping = true
-"#);
+"#
+    );
 
     pb.finish_with_message("done");
 
     // Upload config and generate cert
     let pb = progress_bar("Uploading configuration");
     ssh.run("mkdir -p /etc/veil").await?;
-    ssh.write_file("/etc/veil/server.toml", config.as_bytes()).await?;
+    ssh.write_file("/etc/veil/server.toml", config.as_bytes())
+        .await?;
     pb.finish_with_message("done");
 
     // Generate self-signed cert
@@ -153,7 +165,9 @@ burst_shaping = true
          -out /etc/veil/server.crt \
          -subj '/CN={}'",
         cn
-    )).await.or_else(|_| {
+    ))
+    .await
+    .or_else(|_| {
         // openssl not available, fall back to self-signed via docker
         Ok::<_, anyhow::Error>(String::new())
     })?;
@@ -161,12 +175,14 @@ burst_shaping = true
 
     // Pull and start Docker container
     let pb = progress_bar("Pulling Veil server image");
-    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest").await
+    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest")
+        .await
         .unwrap_or_default();
     pb.finish_with_message("done");
 
     let pb = progress_bar("Starting Veil server container");
-    ssh.run("docker stop veil-server 2>/dev/null; docker rm veil-server 2>/dev/null").await
+    ssh.run("docker stop veil-server 2>/dev/null; docker rm veil-server 2>/dev/null")
+        .await
         .unwrap_or_default();
 
     let docker_run = format!(
@@ -191,10 +207,16 @@ burst_shaping = true
     println!("  Server:  {}:{}", hostname, veil_port);
     println!("  Token:   {}", style(&user_token).yellow());
     println!();
-    println!("{}", style("Save this token — it won't be shown again.").dim());
+    println!(
+        "{}",
+        style("Save this token — it won't be shown again.").dim()
+    );
     println!();
     println!("Connect with:");
-    println!("  veil connect {}:{} --token {}", hostname, veil_port, user_token);
+    println!(
+        "  veil connect {}:{} --token {}",
+        hostname, veil_port, user_token
+    );
 
     Ok(())
 }
@@ -204,7 +226,8 @@ async fn uninstall_server(host: &str) -> Result<()> {
     println!("Uninstalling from {}...", hostname);
 
     let mut ssh = SshClient::connect_interactive(hostname, 22, &user).await?;
-    ssh.run("docker stop veil-server && docker rm veil-server").await?;
+    ssh.run("docker stop veil-server && docker rm veil-server")
+        .await?;
     ssh.run("rm -rf /etc/veil /var/lib/veil").await?;
 
     println!("{} Uninstalled", style("✓").green());
@@ -214,7 +237,9 @@ async fn uninstall_server(host: &str) -> Result<()> {
 async fn server_ssh_status(host: &str) -> Result<()> {
     let (user, hostname) = parse_user_host(host);
     let mut ssh = SshClient::connect_interactive(hostname, 22, &user).await?;
-    let output = ssh.run("docker inspect --format='{{.State.Status}}' veil-server").await?;
+    let output = ssh
+        .run("docker inspect --format='{{.State.Status}}' veil-server")
+        .await?;
     println!("Container status: {}", output.trim());
     Ok(())
 }
@@ -224,15 +249,21 @@ async fn update_server(host: &str) -> Result<()> {
     println!("Updating server on {}...", hostname);
 
     let mut ssh = SshClient::connect_interactive(hostname, 22, &user).await?;
-    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest").await?;
-    ssh.run("docker stop veil-server && docker start veil-server").await?;
+    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest")
+        .await?;
+    ssh.run("docker stop veil-server && docker start veil-server")
+        .await?;
 
     println!("{} Updated", style("✓").green());
     Ok(())
 }
 
 /// Manage server via Admin API
-pub async fn server_manage(action: ServerCommands, server_url: &str, admin_token: &str) -> Result<()> {
+pub async fn server_manage(
+    action: ServerCommands,
+    server_url: &str,
+    admin_token: &str,
+) -> Result<()> {
     let client = reqwest::Client::builder()
         .danger_accept_invalid_certs(true) // self-signed cert
         .default_headers({
@@ -246,43 +277,70 @@ pub async fn server_manage(action: ServerCommands, server_url: &str, admin_token
         ServerCommands::ListUsers => {
             let resp: serde_json::Value = client
                 .get(format!("{}/tokens", server_url))
-                .send().await?.json().await?;
+                .send()
+                .await?
+                .json()
+                .await?;
             println!("{}", serde_json::to_string_pretty(&resp)?);
         }
 
-        ServerCommands::AddUser { label, admin, expires } => {
+        ServerCommands::AddUser {
+            label,
+            admin,
+            expires,
+        } => {
             let resp: serde_json::Value = client
                 .post(format!("{}/tokens", server_url))
-                .json(&serde_json::json!({"label": label, "is_admin": admin, "expires_at": expires}))
-                .send().await?.json().await?;
+                .json(
+                    &serde_json::json!({"label": label, "is_admin": admin, "expires_at": expires}),
+                )
+                .send()
+                .await?
+                .json()
+                .await?;
             println!("{}", serde_json::to_string_pretty(&resp)?);
         }
 
         ServerCommands::RemoveUser { id } => {
             let resp: serde_json::Value = client
                 .delete(format!("{}/tokens/{}", server_url, id))
-                .send().await?.json().await?;
+                .send()
+                .await?
+                .json()
+                .await?;
             println!("{}", serde_json::to_string_pretty(&resp)?);
         }
 
         ServerCommands::Invite => {
             let resp: serde_json::Value = client
                 .post(format!("{}/invite", server_url))
-                .send().await?.json().await?;
-            println!("Invite token: {}", resp["invite_token"].as_str().unwrap_or("?"));
+                .send()
+                .await?
+                .json()
+                .await?;
+            println!(
+                "Invite token: {}",
+                resp["invite_token"].as_str().unwrap_or("?")
+            );
         }
 
         ServerCommands::Sessions => {
             let resp: serde_json::Value = client
                 .get(format!("{}/sessions", server_url))
-                .send().await?.json().await?;
+                .send()
+                .await?
+                .json()
+                .await?;
             println!("{}", serde_json::to_string_pretty(&resp)?);
         }
 
         ServerCommands::Reload => {
             let resp: serde_json::Value = client
                 .post(format!("{}/reload", server_url))
-                .send().await?.json().await?;
+                .send()
+                .await?
+                .json()
+                .await?;
             println!("{}", serde_json::to_string_pretty(&resp)?);
         }
 
@@ -310,16 +368,14 @@ fn parse_user_host(host: &str) -> (&str, &str) {
 
 fn progress_bar(msg: &str) -> ProgressBar {
     let pb = ProgressBar::new_spinner();
-    pb.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} {msg}").unwrap()
-    );
+    pb.set_style(ProgressStyle::with_template("{spinner:.cyan} {msg}").unwrap());
     pb.set_message(msg.to_string());
     pb.enable_steady_tick(std::time::Duration::from_millis(80));
     pb
 }
 
 fn hex_sha256(input: &str) -> String {
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
     let hash = Sha256::digest(input.as_bytes());
     hash.iter().map(|b| format!("{:02x}", b)).collect()
 }

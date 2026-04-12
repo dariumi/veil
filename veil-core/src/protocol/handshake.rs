@@ -1,5 +1,5 @@
+use super::{ProtocolVersion, TrafficProfile, TransportMode};
 use serde::{Deserialize, Serialize};
-use super::{ProtocolVersion, TransportMode, TrafficProfile};
 
 /// Client → Server: initial hello
 #[derive(Debug, Clone, Serialize, Deserialize)]

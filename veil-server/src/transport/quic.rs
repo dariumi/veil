@@ -3,7 +3,7 @@ use quinn::{Endpoint, ServerConfig as QuinnServerConfig};
 use rustls::ServerConfig as RustlsConfig;
 use rustls_pemfile::{certs, private_key};
 use std::{fs::File, io::BufReader, net::SocketAddr, sync::Arc};
-use tracing::{info, warn, debug};
+use tracing::{debug, info, warn};
 
 use crate::auth::AuthManager;
 use crate::config::ServerConfig;
@@ -12,14 +12,10 @@ use crate::relay::RelayEngine;
 pub async fn run_listener(config: Arc<ServerConfig>, auth: Arc<AuthManager>) -> Result<()> {
     let tls_config = build_tls_config(&config)?;
     let quinn_config = QuinnServerConfig::with_crypto(Arc::new(
-        quinn::crypto::rustls::QuicServerConfig::try_from(tls_config)?
+        quinn::crypto::rustls::QuicServerConfig::try_from(tls_config)?,
     ));
 
-    let addr: SocketAddr = format!(
-        "{}:{}",
-        config.listen.bind,
-        config.listen.quic_port
-    ).parse()?;
+    let addr: SocketAddr = format!("{}:{}", config.listen.bind, config.listen.quic_port).parse()?;
 
     let endpoint = Endpoint::server(quinn_config, addr)?;
     info!(addr = %addr, "QUIC/HTTP3 listener ready");
@@ -91,13 +87,16 @@ fn build_tls_config(config: &ServerConfig) -> Result<Arc<RustlsConfig>> {
     let cert_file = File::open(&config.tls.cert_path)?;
     let key_file = File::open(&config.tls.key_path)?;
 
-    let certs: Vec<_> = certs(&mut BufReader::new(cert_file))
-        .collect::<std::result::Result<_, _>>()?;
+    let certs: Vec<_> =
+        certs(&mut BufReader::new(cert_file)).collect::<std::result::Result<_, _>>()?;
 
     let key = private_key(&mut BufReader::new(key_file))?
         .ok_or_else(|| anyhow::anyhow!("No private key found"))?;
 
-    let alpn: Vec<Vec<u8>> = config.tls.alpn.iter()
+    let alpn: Vec<Vec<u8>> = config
+        .tls
+        .alpn
+        .iter()
         .map(|a| a.as_bytes().to_vec())
         .collect();
 
