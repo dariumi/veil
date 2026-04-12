@@ -39,7 +39,7 @@ impl SshClient {
             let mut agent = session.agent()?;
             agent.connect()?;
             agent.list_identities()?;
-            let identities: Vec<_> = agent.identities()?.collect::<std::result::Result<_, _>>()?;
+            let identities = agent.identities()?;
             let mut authed = false;
             for identity in &identities {
                 if agent.userauth(user, identity).is_ok() {

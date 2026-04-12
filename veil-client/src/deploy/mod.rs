@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::info;
 
 use crate::{DeployCommands, ServerCommands};
@@ -40,7 +40,7 @@ async fn install_server(
     host: &str,
     ssh_port: u16,
     password: Option<&str>,
-    key: Option<&PathBuf>,
+    key: Option<&Path>,
     veil_port: u16,
     domain: Option<&str>,
 ) -> Result<()> {

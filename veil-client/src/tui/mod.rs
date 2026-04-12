@@ -73,12 +73,10 @@ async fn setup_deploy_mode() -> Result<()> {
         .with_prompt("Server address (user@host or host)")
         .interact_text()?;
 
-    let port: u16 = Input::new()
+    let port: u16 = Input::<u16>::new()
         .with_prompt("Veil server port")
-        .default("443".into())
-        .interact_text::<String>()?
-        .parse()
-        .unwrap_or(443);
+        .default(443)
+        .interact_text()?;
 
     let domain: String = Input::new()
         .with_prompt("Domain name (optional, for SNI camouflage)")
