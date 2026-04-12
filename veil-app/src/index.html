@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,12 +9,12 @@
 <body>
   <div id="app">
     <!-- Navigation tabs -->
-    <nav id="tabs">
-      <button class="tab active" data-tab="home">Home</button>
-      <button class="tab" data-tab="servers">Servers</button>
-      <button class="tab" data-tab="deploy">Deploy</button>
-      <button class="tab" data-tab="manage">Manage</button>
-      <button class="tab" data-tab="settings">Settings</button>
+    <nav id="tabs" role="tablist" aria-label="Main navigation">
+      <button class="tab active" data-tab="home" role="tab" aria-selected="true">Home</button>
+      <button class="tab" data-tab="servers" role="tab" aria-selected="false">Servers</button>
+      <button class="tab" data-tab="deploy" role="tab" aria-selected="false">Deploy</button>
+      <button class="tab" data-tab="manage" role="tab" aria-selected="false">Manage</button>
+      <button class="tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
     </nav>
 
     <!-- Home tab -->
