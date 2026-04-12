@@ -1,5 +1,4 @@
 use anyhow::Result;
-use tracing::info;
 
 pub mod proxy;
 pub mod vpn;

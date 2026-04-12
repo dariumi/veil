@@ -1,8 +1,7 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::path::{Path, PathBuf};
-use tracing::info;
+use std::path::Path;
 
 use crate::{DeployCommands, ServerCommands};
 
@@ -344,11 +343,11 @@ pub async fn server_manage(
             println!("{}", serde_json::to_string_pretty(&resp)?);
         }
 
-        ServerCommands::Logs { lines } => {
+        ServerCommands::Logs { lines: _ } => {
             println!("Log fetching via SSH not yet implemented");
         }
 
-        ServerCommands::SetPort { port } => {
+        ServerCommands::SetPort { port: _ } => {
             println!("Port change requires SSH access (config edit + restart)");
         }
     }

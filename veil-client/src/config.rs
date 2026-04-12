@@ -1,9 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use veil_core::config::ClientConfig as CoreClientConfig;
-
-use crate::{ConfigCommands, ServerCommands};
+use crate::ConfigCommands;
 
 /// Persisted client configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

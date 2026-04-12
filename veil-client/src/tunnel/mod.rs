@@ -44,8 +44,9 @@ impl TunDevice {
     }
 
     /// Pump packets between TUN device and Veil connection
-    pub async fn run(self, conn: VeilConnection) -> Result<()> {
-        let mut buf = vec![0u8; 65536];
+    pub async fn run(self, _conn: VeilConnection) -> Result<()> {
+        let buf = vec![0u8; 65536];
+        let _ = buf;
 
         // Read IP packets from TUN → send as datagrams through Veil
         // Receive datagrams from Veil → write IP packets to TUN

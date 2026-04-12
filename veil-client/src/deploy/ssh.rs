@@ -2,8 +2,8 @@ use anyhow::{bail, Result};
 use ssh2::Session;
 use std::{
     io::Read,
-    net::{TcpStream, ToSocketAddrs},
-    path::PathBuf,
+    net::TcpStream,
+    path::{Path, PathBuf},
 };
 use tracing::debug;
 
@@ -19,7 +19,7 @@ impl SshClient {
         port: u16,
         user: &str,
         password: Option<&str>,
-        key_path: Option<&PathBuf>,
+        key_path: Option<&Path>,
     ) -> Result<Self> {
         let addr = format!("{}:{}", host, port);
         let tcp = TcpStream::connect(&addr)

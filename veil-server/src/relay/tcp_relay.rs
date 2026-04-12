@@ -1,8 +1,8 @@
 use anyhow::{bail, Result};
 use std::sync::Arc;
-use tokio::io::{self, AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::{debug, warn};
+use tracing::debug;
 
 use crate::config::ServerConfig;
 

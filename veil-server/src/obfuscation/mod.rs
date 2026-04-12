@@ -1,6 +1,6 @@
 use bytes::{BufMut, Bytes, BytesMut};
 use rand::Rng;
-use veil_core::protocol::frame::{ChannelId, Frame, FrameType};
+use veil_core::protocol::frame::Frame;
 
 /// Common HTTPS response sizes to normalize packet sizes to
 const HTTPS_COMMON_SIZES: &[usize] = &[576, 1024, 1280, 1460, 2048, 4096, 8192];

@@ -7,7 +7,6 @@ use tokio::net::TcpStream;
 use tracing::{debug, info, warn};
 
 use veil_core::protocol::handshake::{AuthMethod, AuthRequest};
-use veil_core::protocol::SessionToken;
 
 /// Established connection to a Veil server (QUIC or TLS/TCP fallback)
 pub struct VeilConnection {
@@ -100,7 +99,7 @@ impl VeilConnection {
     }
 }
 
-async fn connect_quic(server: &str, token: &str, profile: &str) -> Result<VeilConnection> {
+async fn connect_quic(server: &str, token: &str, _profile: &str) -> Result<VeilConnection> {
     let tls_config = build_client_tls()?;
     let quinn_config = QuinnClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(tls_config)?,
@@ -153,7 +152,7 @@ async fn authenticate_quic(conn: &quinn::Connection, token: &str) -> Result<Stri
     }
 }
 
-async fn connect_tcp(server: &str, token: &str, _profile: &str) -> Result<VeilConnection> {
+async fn connect_tcp(_server: &str, _token: &str, _profile: &str) -> Result<VeilConnection> {
     anyhow::bail!("TCP/TLS fallback not yet implemented")
 }
 

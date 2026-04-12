@@ -4,7 +4,7 @@ use tokio::io::{AsyncRead, AsyncWrite};
 use tracing::{debug, warn};
 
 use crate::config::ServerConfig;
-use veil_core::protocol::frame::{ChannelId, Frame, FrameType};
+use veil_core::protocol::frame::{Frame, FrameType};
 use veil_core::protocol::session::Session;
 
 pub mod tcp_relay;
@@ -97,8 +97,8 @@ impl RelayEngine {
                     match f.frame_type {
                         FrameType::StreamOpen => {
                             // New TCP connection request: parse destination from payload
-                            let config = self.config.clone();
-                            let payload = f.payload.clone();
+                            let _config = self.config.clone();
+                            let _payload = f.payload.clone();
                             let channel = f.channel_id;
                             // Spawn TCP relay for this stream
                             debug!(channel = ?channel, "Stream open request");
