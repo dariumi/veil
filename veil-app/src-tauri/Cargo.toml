@@ -1,0 +1,31 @@
+[package]
+name = "veil-app"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "veil_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "veil-app"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+veil-core   = { path = "../../veil-core" }
+veil-client = { path = "../../veil-client" }
+
+tauri         = { version = "2", features = ["tray-icon", "image-default"] }
+tauri-plugin-shell   = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-autostart   = "2"
+
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio      = { version = "1", features = ["full"] }
+anyhow     = "1"
+tracing    = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

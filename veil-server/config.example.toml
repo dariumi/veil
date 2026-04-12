@@ -1,0 +1,74 @@
+# Veil Server Configuration
+# Copy to /etc/veil/server.toml and fill in the values
+
+[node]
+# Role: "entry", "relay", "exit", or "all" (single-hop)
+role = "all"
+name = "my-veil-node"
+# Empty = allow all destinations. Specify to restrict exit:
+# allowed_destinations = ["0.0.0.0/0", "::/0"]
+allowed_destinations = []
+
+[listen]
+bind = "0.0.0.0"
+quic_port = 443
+tcp_port = 443
+extra_ports = [8443, 2053]
+
+[tls]
+cert_path = "/etc/veil/server.crt"
+key_path  = "/etc/veil/server.key"
+# Domain for SNI (looks like regular HTTPS)
+sni = "example.com"
+# ALPN - keep h3 first to camouflage as HTTP/3
+alpn = ["h3", "h2", "http/1.1"]
+# Rotate TLS session keys every N hours (0 = disabled)
+key_rotation_hours = 24
+
+[auth]
+# Generate with: openssl rand -hex 32
+signing_key = "REPLACE_WITH_64_HEX_CHARS"
+invite_ttl_seconds = 3600
+rate_limit = true
+tarpit_ms = 500
+
+# Add user tokens here (token_hash = sha256 of the actual token, hex-encoded)
+# Generate token: veil-server --gen-token
+# Hash: echo -n "TOKEN" | sha256sum
+[[auth.tokens]]
+id = "user1"
+token_hash = "REPLACE_WITH_SHA256_OF_TOKEN"
+label = "Main user"
+is_admin = false
+# expires_at = "2025-12-31T23:59:59Z"  # optional
+
+[relay]
+tcp_enabled = true
+udp_enabled = true
+dns_enabled = true
+max_streams_per_session = 256
+
+[limits]
+max_sessions = 1000
+# bandwidth_mbps = 100  # optional rate limit
+session_timeout_secs = 3600
+connect_rate_per_ip = 10
+
+[logging]
+# Minimal logging for privacy. Options: error, warn, info, debug, trace
+level = "warn"
+disabled = false
+# file = "/var/log/veil/server.log"  # optional log file
+
+[admin]
+enabled = true
+bind = "127.0.0.1"
+port = 9090
+# Generate with: openssl rand -hex 32
+admin_token = "REPLACE_WITH_ADMIN_TOKEN"
+
+[obfuscation]
+padding_enabled = true
+size_normalization = true
+idle_noise = false
+burst_shaping = true

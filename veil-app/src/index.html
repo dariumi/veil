@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Veil</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Navigation tabs -->
+    <nav id="tabs">
+      <button class="tab active" data-tab="home">Home</button>
+      <button class="tab" data-tab="servers">Servers</button>
+      <button class="tab" data-tab="deploy">Deploy</button>
+      <button class="tab" data-tab="manage">Manage</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- Home tab -->
+    <section id="tab-home" class="tab-content active">
+      <div class="hero">
+        <div id="shield-wrap">
+          <svg id="shield" viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 5 L95 25 L95 60 C95 85 75 105 50 112 C25 105 5 85 5 60 L5 25 Z"
+                  fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path id="shield-check" d="M30 57 L44 71 L70 45" fill="none"
+                  stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
+          </svg>
+        </div>
+
+        <div id="status-label">Disconnected</div>
+        <div id="status-sub">Your traffic is not protected</div>
+      </div>
+
+      <div id="connect-btn-wrap">
+        <button id="btn-connect" class="btn-primary" onclick="App.toggleConnect()">
+          Connect
+        </button>
+      </div>
+
+      <div id="stats-row" class="hidden">
+        <div class="stat">
+          <span class="stat-icon">↑</span>
+          <span id="stat-up">0 B</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-icon">↓</span>
+          <span id="stat-down">0 B</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-icon">⏱</span>
+          <span id="stat-time">0:00</span>
+        </div>
+      </div>
+
+      <div id="profile-row">
+        <label>Profile</label>
+        <select id="profile-select" onchange="App.selectProfile(this.value)">
+          <option value="">— select server —</option>
+        </select>
+        <span id="mode-badge" class="badge hidden"></span>
+      </div>
+    </section>
+
+    <!-- Servers tab -->
+    <section id="tab-servers" class="tab-content">
+      <div class="tab-header">
+        <h2>Server Profiles</h2>
+        <button class="btn-icon" onclick="UI.showModal('modal-add-profile')" title="Add profile">+</button>
+      </div>
+      <div id="profiles-list" class="list">
+        <div class="empty-state">No servers added yet</div>
+      </div>
+    </section>
+
+    <!-- Deploy tab -->
+    <section id="tab-deploy" class="tab-content">
+      <div class="tab-header">
+        <h2>Deploy Self-hosted Server</h2>
+      </div>
+      <p class="hint">Install Veil server on your VPS via SSH. Requires Linux with Docker support.</p>
+
+      <form id="deploy-form" onsubmit="App.deploy(event)">
+        <div class="field">
+          <label>Server address</label>
+          <input type="text" id="d-host" placeholder="user@1.2.3.4 or 1.2.3.4" required />
+        </div>
+        <div class="field row">
+          <div style="flex:1">
+            <label>SSH port</label>
+            <input type="number" id="d-ssh-port" value="22" min="1" max="65535" />
+          </div>
+          <div style="flex:1">
+            <label>Veil port</label>
+            <input type="number" id="d-veil-port" value="443" min="1" max="65535" />
+          </div>
+        </div>
+        <div class="field">
+          <label>SSH password</label>
+          <input type="password" id="d-password" placeholder="Leave empty to use SSH key" />
+        </div>
+        <div class="field">
+          <label>Domain (optional)</label>
+          <input type="text" id="d-domain" placeholder="example.com — for better camouflage" />
+        </div>
+        <button type="submit" class="btn-primary w-full" id="btn-deploy">
+          Deploy Server
+        </button>
+      </form>
+
+      <div id="deploy-log" class="log hidden"></div>
+      <div id="deploy-result" class="result-card hidden"></div>
+    </section>
+
+    <!-- Manage tab -->
+    <section id="tab-manage" class="tab-content">
+      <div class="tab-header">
+        <h2>Manage Server</h2>
+        <button class="btn-sm" onclick="App.refreshServerInfo()">Refresh</button>
+      </div>
+
+      <div id="server-info-card" class="card hidden">
+        <div class="info-row">
+          <span>Status</span>
+          <span id="srv-status" class="badge badge-green">—</span>
+        </div>
+        <div class="info-row">
+          <span>Active sessions</span>
+          <span id="srv-sessions">—</span>
+        </div>
+        <div class="info-row">
+          <span>Version</span>
+          <span id="srv-version">—</span>
+        </div>
+      </div>
+      <div id="no-server-msg" class="empty-state">
+        No managed server. Deploy one first.
+      </div>
+
+      <div id="manage-actions" class="hidden">
+        <div class="section-title">Users & Tokens</div>
+        <button class="btn-secondary w-full" onclick="UI.showModal('modal-add-user')">
+          + Add User
+        </button>
+        <div id="users-list" class="list mt-8"></div>
+
+        <div class="section-title mt-16">Danger Zone</div>
+        <button class="btn-danger w-full" onclick="App.reloadServer()">Hot Reload Config</button>
+      </div>
+    </section>
+
+    <!-- Settings tab -->
+    <section id="tab-settings" class="tab-content">
+      <div class="tab-header"><h2>Settings</h2></div>
+
+      <div class="settings-group">
+        <div class="setting-row">
+          <span>Launch at startup</span>
+          <label class="toggle"><input type="checkbox" id="s-autostart" onchange="App.setSetting('autostart', this.checked)" /><span></span></label>
+        </div>
+        <div class="setting-row">
+          <span>Kill switch</span>
+          <label class="toggle"><input type="checkbox" id="s-killswitch" checked onchange="App.setSetting('killswitch', this.checked)" /><span></span></label>
+        </div>
+        <div class="setting-row">
+          <span>DNS leak protection</span>
+          <label class="toggle"><input type="checkbox" id="s-dns-protect" checked onchange="App.setSetting('dns_protect', this.checked)" /><span></span></label>
+        </div>
+        <div class="setting-row">
+          <span>IPv6 leak protection</span>
+          <label class="toggle"><input type="checkbox" id="s-ipv6" checked onchange="App.setSetting('ipv6_protect', this.checked)" /><span></span></label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="setting-row">
+          <span>Traffic profile</span>
+          <select id="s-profile" onchange="App.setSetting('profile', this.value)">
+            <option value="balanced">Balanced</option>
+            <option value="realtime">Realtime (low latency)</option>
+            <option value="throughput">Throughput</option>
+            <option value="stealth">Stealth</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span>Client mode</span>
+          <select id="s-mode" onchange="App.setSetting('mode', this.value)">
+            <option value="vpn">VPN (TUN)</option>
+            <option value="proxy">Proxy (SOCKS5/HTTP)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="version-row">Veil v0.1.0</div>
+    </section>
+  </div>
+
+  <!-- Modal: Add Profile -->
+  <div id="modal-add-profile" class="modal-overlay hidden" onclick="UI.closeModalOutside(event, 'modal-add-profile')">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Server</h3>
+        <button class="btn-icon" onclick="UI.hideModal('modal-add-profile')">✕</button>
+      </div>
+      <form onsubmit="App.addProfile(event)">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="p-name" placeholder="My Server" required />
+        </div>
+        <div class="field row">
+          <div style="flex:1">
+            <label>Host</label>
+            <input type="text" id="p-host" placeholder="1.2.3.4" required />
+          </div>
+          <div style="width:80px">
+            <label>Port</label>
+            <input type="number" id="p-port" value="443" min="1" max="65535" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Token</label>
+          <input type="password" id="p-token" placeholder="your-access-token" required />
+        </div>
+        <div class="field">
+          <label>Mode</label>
+          <select id="p-mode">
+            <option value="vpn">VPN</option>
+            <option value="proxy">Proxy</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary w-full">Add Server</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add User -->
+  <div id="modal-add-user" class="modal-overlay hidden" onclick="UI.closeModalOutside(event, 'modal-add-user')">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add User</h3>
+        <button class="btn-icon" onclick="UI.hideModal('modal-add-user')">✕</button>
+      </div>
+      <form onsubmit="App.addUser(event)">
+        <div class="field">
+          <label>Label</label>
+          <input type="text" id="u-label" placeholder="Alice" required />
+        </div>
+        <div class="field">
+          <label class="row" style="align-items:center;gap:8px">
+            <input type="checkbox" id="u-admin" />
+            Admin access
+          </label>
+        </div>
+        <button type="submit" class="btn-primary w-full">Create Token</button>
+      </form>
+      <div id="user-created" class="result-card hidden"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "veil-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev":   "cargo tauri dev",
+    "build": "cargo tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}

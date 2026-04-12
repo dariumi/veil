@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  veil-server:
+    build:
+      context: .
+      dockerfile: veil-server/Dockerfile
+    container_name: veil-server
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "443:443/udp"
+      - "443:443/tcp"
+      - "8443:8443/udp"
+      - "8443:8443/tcp"
+      # Admin API: only accessible from localhost
+      - "127.0.0.1:9090:9090/tcp"
+    volumes:
+      - ./config/server.toml:/etc/veil/server.toml:ro
+      - ./config/server.crt:/etc/veil/server.crt:ro
+      - ./config/server.key:/etc/veil/server.key:ro
+      - veil-data:/var/lib/veil
+    environment:
+      - RUST_LOG=warn
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--no-check-certificate", "-O-",
+             "https://localhost:9090/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  veil-data:
+    driver: local
