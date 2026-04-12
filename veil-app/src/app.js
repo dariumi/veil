@@ -1,8 +1,11 @@
-// Tauri invoke bridge
-const invoke = window.__TAURI__?.core?.invoke ?? (async (cmd, args) => {
-  console.log('[stub]', cmd, args);
-  return stubResponses[cmd]?.(args) ?? null;
-});
+// Tauri invoke bridge — uses real backend in app, stubs in browser dev mode
+const isTauri = Boolean(window.__TAURI__);
+const invoke = isTauri
+  ? window.__TAURI__.core.invoke
+  : async (cmd, args) => {
+      console.debug('[stub invoke]', cmd, args);
+      return stubResponses[cmd]?.(args) ?? null;
+    };
 
 // ── Stub responses for browser dev mode ──────────────────────────────────────
 const stubResponses = {
