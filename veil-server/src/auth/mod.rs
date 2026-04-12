@@ -123,11 +123,14 @@ mod hex {
     pub fn encode(bytes: Vec<u8>) -> String {
         bytes.iter().map(|b| format!("{:02x}", b)).collect()
     }
-    pub fn decode(s: &str) -> Result<Vec<u8>, ()> {
-        if s.len() % 2 != 0 { return Err(()); }
+    pub fn decode(s: &str) -> Result<Vec<u8>, anyhow::Error> {
+        if s.len() % 2 != 0 {
+            anyhow::bail!("odd hex string length");
+        }
         (0..s.len())
             .step_by(2)
-            .map(|i| u8::from_str_radix(&s[i..i+2], 16).map_err(|_| ()))
+            .map(|i| u8::from_str_radix(&s[i..i+2], 16)
+                .map_err(|e| anyhow::anyhow!("invalid hex: {}", e)))
             .collect()
     }
 }
