@@ -142,7 +142,7 @@ burst_shaping = true
     // Generate self-signed cert
     let pb = progress_bar("Generating TLS certificate");
     let cert_cmd = format!(
-        "docker run --rm -v /etc/veil:/etc/veil ghcr.io/veil-project/veil-server:latest \
+        "docker run --rm -v /etc/veil:/etc/veil ghcr.io/dariuni/veil-server:latest \
          veil-server --gen-cert && mv server.crt /etc/veil/ && mv server.key /etc/veil/"
     );
     // Simplified: use openssl directly
@@ -161,7 +161,7 @@ burst_shaping = true
 
     // Pull and start Docker container
     let pb = progress_bar("Pulling Veil server image");
-    ssh.run("docker pull ghcr.io/veil-project/veil-server:latest").await
+    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest").await
         .unwrap_or_default();
     pb.finish_with_message("done");
 
@@ -179,7 +179,7 @@ burst_shaping = true
          -p 127.0.0.1:9090:9090 \
          -v /etc/veil:/etc/veil:ro \
          -v /var/lib/veil:/var/lib/veil \
-         ghcr.io/veil-project/veil-server:latest"
+         ghcr.io/dariuni/veil-server:latest"
     );
     ssh.run(&docker_run).await?;
     pb.finish_with_message("started");
@@ -224,7 +224,7 @@ async fn update_server(host: &str) -> Result<()> {
     println!("Updating server on {}...", hostname);
 
     let mut ssh = SshClient::connect_interactive(hostname, 22, &user).await?;
-    ssh.run("docker pull ghcr.io/veil-project/veil-server:latest").await?;
+    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest").await?;
     ssh.run("docker stop veil-server && docker start veil-server").await?;
 
     println!("{} Updated", style("✓").green());

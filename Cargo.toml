@@ -20,8 +20,8 @@ tokio-util = { version = "0.7", features = ["codec"] }
 
 # QUIC / HTTP3
 quinn = { version = "0.11" }
-h3 = { version = "0.0.6" }
-h3-quinn = { version = "0.0.6" }
+h3 = { version = "0.0.8" }
+h3-quinn = { version = "0.0.10" }
 
 # TLS
 rustls = { version = "0.23", features = ["ring"] }
@@ -50,8 +50,8 @@ uuid = { version = "1", features = ["v4"] }
 
 # Networking
 socket2 = { version = "0.5", features = ["all"] }
-ipnet = "2"
-hickory-resolver = { version = "0.24", features = ["tokio-runtime", "dns-over-tls", "dns-over-https"] }
+ipnet = { version = "2", features = ["serde"] }
+hickory-resolver = { version = "0.24", features = ["tokio-runtime", "dns-over-https-rustls", "dns-over-rustls"] }
 
 # CLI
 clap = { version = "4", features = ["derive", "env"] }
@@ -81,11 +81,3 @@ ssh2 = "0.9"
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }
-
-# Tauri
-tauri = { version = "2", features = ["tray-icon", "image-default"] }
-tauri-build = { version = "2", features = [] }
-tauri-plugin-shell = "2"
-tauri-plugin-notification = "2"
-tauri-plugin-autostart = "2"
-uuid = { version = "1", features = ["v4"] }

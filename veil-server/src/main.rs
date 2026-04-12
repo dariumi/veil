@@ -92,9 +92,10 @@ fn generate_self_signed_cert() -> Result<()> {
         SanType::IpAddress(std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)),
     ];
 
-    let cert = rcgen::Certificate::from_params(params)?;
-    fs::write("server.crt", cert.serialize_pem()?)?;
-    fs::write("server.key", cert.serialize_private_key_pem())?;
+    let key_pair = rcgen::KeyPair::generate()?;
+    let cert = params.self_signed(&key_pair)?;
+    fs::write("server.crt", cert.pem())?;
+    fs::write("server.key", key_pair.serialize_pem())?;
 
     println!("Generated server.crt and server.key");
     Ok(())
