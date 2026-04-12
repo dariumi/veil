@@ -1,7 +1,5 @@
-use tauri::{AppHandle, Manager, State};
-use serde::{Deserialize, Serialize};
+use tauri::Manager;
 use std::sync::{Arc, Mutex};
-use tokio::runtime::Handle;
 
 mod tray;
 mod state;
