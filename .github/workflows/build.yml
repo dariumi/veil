@@ -103,8 +103,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Tauri CLI
-        run: npm install --save-dev @tauri-apps/cli
+      - name: Install npm deps
+        run: npm ci
         working-directory: veil-app
 
       - name: Build Tauri app
@@ -112,6 +112,7 @@ jobs:
         working-directory: veil-app
         env:
           OPENSSL_STATIC: "1"
+          TAURI_SIGNING_PRIVATE_KEY: ""
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
