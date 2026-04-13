@@ -65,7 +65,7 @@ Download from [Releases](../../releases):
 **Prerequisites:** Rust 1.82+, `libssl-dev`, `libssh2-1-dev` (Linux)
 
 ```bash
-git clone https://github.com/YOUR_ORG/veil.git
+git clone https://github.com/dariumi/veil.git
 cd veil
 cargo build --release -p veil-client
 ./target/release/veil --help
