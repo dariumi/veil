@@ -6,6 +6,18 @@ use tracing::{debug, info};
 
 use crate::transport::VeilConnection;
 
+/// Attach an already-established VeilConnection to a SOCKS5 listener.
+/// Used by Android VPN mode: the connection is created separately, then
+/// we expose it as a local SOCKS5 server that tun2proxy routes into.
+pub async fn run_server(
+    bind_addr: &str,
+    conn: std::sync::Arc<VeilConnection>,
+) -> Result<()> {
+    let socks5_addr: SocketAddr = bind_addr.parse()?;
+    info!(socks5 = %socks5_addr, "SOCKS5 server started");
+    run_socks5(socks5_addr, conn).await
+}
+
 /// Run local SOCKS5 proxy + HTTP CONNECT proxy
 pub async fn run(server: &str, token: &str, profile: &str) -> Result<()> {
     let socks5_addr: SocketAddr = "127.0.0.1:1080".parse()?;

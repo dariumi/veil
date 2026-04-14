@@ -3,6 +3,10 @@ name = "veil-client"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+name = "veil_client"
+path = "src/lib.rs"
+
 [[bin]]
 name = "veil"
 path = "src/main.rs"
@@ -40,7 +44,7 @@ sha2 = { workspace = true }
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 rpassword = "7"
 
-# TUN interface (cross-platform)
+# TUN interface (cross-platform desktop)
 [target.'cfg(target_os = "linux")'.dependencies]
 tun = { version = "0.6", features = ["async"] }
 
@@ -49,3 +53,8 @@ tun = { version = "0.6", features = ["async"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wintun = "0.4"
+
+# Android: JNI for VpnService fd callback + libc for fd flags
+[target.'cfg(target_os = "android")'.dependencies]
+jni   = { workspace = true }
+libc  = "0.2"

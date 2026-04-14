@@ -1,7 +1,7 @@
 {
   "productName": "Veil",
-  "version": "0.1.0",
-  "identifier": "com.veil-project.veil",
+  "version": "0.2.0",
+  "identifier": "com.veilproject.veil",
   "build": {
     "frontendDist": "../src"
   },
@@ -39,6 +39,15 @@
     ],
     "category": "Utility",
     "shortDescription": "Privacy VPN",
-    "longDescription": "Veil — censorship-resistant VPN and proxy with HTTP/3 camouflage"
+    "longDescription": "Veil — censorship-resistant VPN and proxy with HTTP/3 camouflage",
+    "android": {
+      "minSdkVersion": 26,
+      "versionCode": 1
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
   }
 }

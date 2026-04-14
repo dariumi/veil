@@ -3,10 +3,41 @@ use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
 
-use crate::{DeployCommands, ServerCommands};
-
 mod ssh;
 use ssh::SshClient;
+
+// ── CLI command types ─────────────────────────────────────────────────────────
+
+#[derive(Debug)]
+pub enum DeployCommands {
+    Install {
+        host: String,
+        ssh_port: u16,
+        password: Option<String>,
+        key: Option<std::path::PathBuf>,
+        veil_port: u16,
+        domain: Option<String>,
+    },
+    Uninstall { host: String },
+    Status { host: String },
+    Update { host: String },
+}
+
+#[derive(Debug)]
+pub enum ServerCommands {
+    ListUsers,
+    AddUser {
+        label: String,
+        admin: bool,
+        expires: Option<String>,
+    },
+    RemoveUser { id: String },
+    Invite,
+    Sessions,
+    SetPort { port: u16 },
+    Reload,
+    Logs { lines: u32 },
+}
 
 pub async fn handle(action: DeployCommands) -> Result<()> {
     match action {
@@ -153,7 +184,7 @@ burst_shaping = true
     // Generate self-signed cert
     let pb = progress_bar("Generating TLS certificate");
     let cert_cmd = format!(
-        "docker run --rm -v /etc/veil:/etc/veil ghcr.io/dariuni/veil-server:latest \
+        "docker run --rm -v /etc/veil:/etc/veil ghcr.io/dariumi/veil-server:latest \
          veil-server --gen-cert && mv server.crt /etc/veil/ && mv server.key /etc/veil/"
     );
     // Simplified: use openssl directly
@@ -174,7 +205,7 @@ burst_shaping = true
 
     // Pull and start Docker container
     let pb = progress_bar("Pulling Veil server image");
-    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest")
+    ssh.run("docker pull ghcr.io/dariumi/veil-server:latest")
         .await
         .unwrap_or_default();
     pb.finish_with_message("done");
@@ -194,7 +225,7 @@ burst_shaping = true
          -p 127.0.0.1:9090:9090 \
          -v /etc/veil:/etc/veil:ro \
          -v /var/lib/veil:/var/lib/veil \
-         ghcr.io/dariuni/veil-server:latest"
+         ghcr.io/dariumi/veil-server:latest"
     );
     ssh.run(&docker_run).await?;
     pb.finish_with_message("started");
@@ -248,7 +279,7 @@ async fn update_server(host: &str) -> Result<()> {
     println!("Updating server on {}...", hostname);
 
     let mut ssh = SshClient::connect_interactive(hostname, 22, &user).await?;
-    ssh.run("docker pull ghcr.io/dariuni/veil-server:latest")
+    ssh.run("docker pull ghcr.io/dariumi/veil-server:latest")
         .await?;
     ssh.run("docker stop veil-server && docker start veil-server")
         .await?;

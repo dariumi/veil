@@ -7,6 +7,12 @@ const invoke = isTauri
       return stubResponses[cmd]?.(args) ?? null;
     };
 
+// Platform detection: Tauri sets window.__TAURI_METADATA__ with platform info
+const isAndroid = isTauri && (
+  window.__TAURI_METADATA__?.currentPlatform === 'android' ||
+  /android/i.test(navigator.userAgent)
+);
+
 // ── Stub responses for browser dev mode ──────────────────────────────────────
 const stubResponses = {
   get_status: () => ({ status: 'disconnected', active_profile: null, bytes_up: 0, bytes_down: 0, elapsed_secs: 0 }),
@@ -76,9 +82,50 @@ const App = {
 
   async init() {
     this.setupTabs();
+    this.adaptForPlatform();
     await this.refreshProfiles();
     await this.pollStatus();
     this.pollInterval = setInterval(() => this.pollStatus(), 2000);
+  },
+
+  adaptForPlatform() {
+    if (isAndroid) {
+      // Hide Deploy tab — SSH deployment not available on mobile
+      document.querySelector('.tab[data-tab="deploy"]')?.classList.add('hidden');
+      // Hide autostart setting (not applicable on Android)
+      document.querySelector('#s-autostart')?.closest('.setting-row')?.classList.add('hidden');
+      // Show VPN permission banner if needed
+      this.checkVpnPermission();
+    }
+  },
+
+  async checkVpnPermission() {
+    // On first launch, Android requires the user to grant VPN permission via system dialog.
+    // We show a banner explaining this before the first connect attempt.
+    const granted = localStorage.getItem('vpn_permission_granted');
+    if (!granted) {
+      const banner = document.createElement('div');
+      banner.id = 'vpn-permission-banner';
+      banner.style.cssText = `
+        background: var(--bg-card);
+        border: 1px solid var(--accent);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 12px 16px;
+        font-size: 13px;
+        line-height: 1.5;
+      `;
+      banner.innerHTML = `
+        <strong>VPN permission required</strong><br>
+        <span style="color:var(--text-muted)">
+          Veil needs your permission to create a VPN tunnel. A system dialog will appear when you first connect.
+        </span>
+      `;
+      document.getElementById('tab-home').insertBefore(
+        banner,
+        document.getElementById('connect-btn-wrap')
+      );
+    }
   },
 
   setupTabs() {
@@ -141,13 +188,24 @@ const App = {
 
   async toggleConnect() {
     if (this.status === 'connected' || this.status === 'connecting') {
-      await invoke('disconnect');
+      if (isAndroid) {
+        await invoke('stop_vpn');
+      } else {
+        await invoke('disconnect');
+      }
     } else {
       if (!this.selectedProfile) {
         UI.toast('Select a server profile first', 'error');
         return;
       }
-      await invoke('connect', { req: { profile_id: this.selectedProfile, mode: 'vpn' } });
+      if (isAndroid) {
+        // Android: start_vpn triggers VpnService; system will show permission dialog on first use
+        localStorage.setItem('vpn_permission_granted', '1');
+        document.getElementById('vpn-permission-banner')?.remove();
+        await invoke('start_vpn', { profileId: this.selectedProfile });
+      } else {
+        await invoke('connect', { req: { profile_id: this.selectedProfile, mode: 'vpn' } });
+      }
     }
   },
 

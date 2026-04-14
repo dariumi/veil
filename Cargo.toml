@@ -7,10 +7,17 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-authors = ["dariumi"]
+authors = [
+    "dariumi <arkoarkonova@gmail.com>",
+    "DARIA-agent <daria.arkonova@gmail.com>",
+    "Daria <137631423+dariumi@users.noreply.github.com>",
+]
 license = "MIT"
+homepage = "https://arkonova.network/VPN"
+repository = "https://github.com/dariumi/veil"
+description = "Censorship-resistant VPN and proxy — Arkonova Network"
 
 [workspace.dependencies]
 # Async runtime
@@ -80,3 +87,6 @@ ssh2 = "0.9"
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }
+
+# Android
+jni = { version = "0.21", default-features = false }

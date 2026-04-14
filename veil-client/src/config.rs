@@ -1,16 +1,12 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use crate::ConfigCommands;
 
 /// Persisted client configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ClientConfig {
-    /// Saved server profiles
     pub profiles: Vec<ServerProfile>,
-    /// Currently active profile name
     pub active_profile: Option<String>,
-    /// Managed server (self-hosted)
     pub managed_server: Option<ManagedServer>,
 }
 
@@ -24,7 +20,6 @@ pub struct ServerProfile {
     pub ca_cert: Option<String>,
 }
 
-/// Self-hosted server metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManagedServer {
     pub host: String,
@@ -51,8 +46,7 @@ impl ClientConfig {
         if let Some(parent) = expanded.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let content = toml::to_string_pretty(self)?;
-        std::fs::write(&expanded, content)?;
+        std::fs::write(&expanded, toml::to_string_pretty(self)?)?;
         Ok(())
     }
 
@@ -70,6 +64,30 @@ impl ClientConfig {
     }
 }
 
+// Config sub-commands — defined here, used by main.rs via `use crate::config`
+pub enum ConfigAction {
+    Show,
+    Set { key: String, value: String },
+    Reset,
+}
+
+pub fn handle_config_command(action: Option<ConfigAction>, config_path: &Path) -> Result<()> {
+    let config = ClientConfig::load_or_default(config_path)?;
+    match action {
+        None | Some(ConfigAction::Show) => {
+            println!("{}", toml::to_string_pretty(&config)?);
+        }
+        Some(ConfigAction::Set { key, value }) => {
+            println!("Setting {} = {} (not yet implemented)", key, value);
+        }
+        Some(ConfigAction::Reset) => {
+            ClientConfig::default().save(config_path)?;
+            println!("Config reset to defaults");
+        }
+    }
+    Ok(())
+}
+
 fn expand_tilde(path: &Path) -> PathBuf {
     let s = path.to_string_lossy();
     if s.starts_with("~/") {
@@ -78,24 +96,4 @@ fn expand_tilde(path: &Path) -> PathBuf {
         }
     }
     path.to_path_buf()
-}
-
-pub fn handle_config_command(action: Option<ConfigCommands>, config_path: &Path) -> Result<()> {
-    let config = ClientConfig::load_or_default(config_path)?;
-
-    match action {
-        None | Some(ConfigCommands::Show) => {
-            println!("{}", toml::to_string_pretty(&config)?);
-        }
-        Some(ConfigCommands::Set { key, value }) => {
-            println!("Setting {} = {} (not yet implemented)", key, value);
-        }
-        Some(ConfigCommands::Reset) => {
-            let default = ClientConfig::default();
-            default.save(config_path)?;
-            println!("Config reset to defaults");
-        }
-    }
-
-    Ok(())
 }

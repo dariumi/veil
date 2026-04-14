@@ -117,7 +117,67 @@ pub async fn delete_profile(
     Ok(())
 }
 
-// ── Server Deployment ─────────────────────────────────────────────────────────
+// ── Android VPN ───────────────────────────────────────────────────────────────
+
+#[cfg(target_os = "android")]
+#[tauri::command]
+pub async fn start_vpn(
+    profile_id: String,
+    state: State<'_, AppStateRef>,
+) -> Result<(), String> {
+    let (server, token) = {
+        let s = state.lock().unwrap();
+        let profile = s.profiles
+            .iter()
+            .find(|p| p.id == profile_id)
+            .ok_or("Profile not found")?
+            .clone();
+        (
+            format!("{}:{}", profile.host, profile.port),
+            profile.token.clone(),
+        )
+    };
+
+    {
+        let mut s = state.lock().unwrap();
+        s.status = ConnectionStatus::Connecting;
+        s.active_profile = Some(profile_id);
+    }
+
+    let state_arc = state.inner().clone();
+    tokio::spawn(async move {
+        match crate::vpn_android::start(server, token).await {
+            Ok(()) => {
+                let mut s = state_arc.lock().unwrap();
+                s.status = ConnectionStatus::Disconnected;
+                s.active_profile = None;
+                s.connected_since = None;
+            }
+            Err(e) => {
+                tracing::error!(err = %e, "Android VPN error");
+                let mut s = state_arc.lock().unwrap();
+                s.status = ConnectionStatus::Error(e.to_string());
+            }
+        }
+    });
+
+    Ok(())
+}
+
+#[cfg(target_os = "android")]
+#[tauri::command]
+pub async fn stop_vpn(state: State<'_, AppStateRef>) -> Result<(), String> {
+    crate::vpn_android::stop();
+    let mut s = state.lock().unwrap();
+    s.status = ConnectionStatus::Disconnected;
+    s.active_profile = None;
+    s.connected_since = None;
+    s.bytes_up = 0;
+    s.bytes_down = 0;
+    Ok(())
+}
+
+// ── Server Deployment (desktop only — SSH not available on mobile) ────────────
 
 #[derive(Deserialize)]
 pub struct DeployRequest {
@@ -137,6 +197,7 @@ pub struct DeployResult {
     pub message: String,
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn deploy_server(
     req: DeployRequest,

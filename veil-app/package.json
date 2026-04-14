@@ -1,7 +1,10 @@
 {
   "name": "veil-app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "description": "Veil — censorship-resistant VPN by Arkonova Network",
+  "author": "dariumi <arkoarkonova@gmail.com>",
+  "homepage": "https://arkonova.network/VPN",
   "scripts": {
     "dev":   "tauri dev",
     "build": "tauri build",

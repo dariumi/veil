@@ -2,6 +2,8 @@
 
 **Censorship-resistant VPN and proxy with HTTP/3 camouflage**
 
+> By [Arkonova Network](https://arkonova.network/VPN) · Mirror: [arkonova.network/veil](https://arkonova.network/veil)
+
 Veil is a privacy-focused network tunnel that disguises traffic as ordinary HTTPS/HTTP3, making it resistant to deep packet inspection (DPI) and active probing.
 
 ---
@@ -16,6 +18,7 @@ Veil is a privacy-focused network tunnel that disguises traffic as ordinary HTTP
 - **DNS leak protection** — all DNS over encrypted channel
 - **Self-hosted** — deploy your own server in one command via SSH
 - **Desktop app** — Tauri GUI for Windows, macOS, Linux
+- **Android app** — VpnService-based full tunnel (TUN → SOCKS5 → QUIC)
 
 ---
 
@@ -56,9 +59,10 @@ Download the latest release for your platform from [Releases](../../releases).
 ### Pre-built binaries
 
 Download from [Releases](../../releases):
-- `veil_linux_amd64.deb` / `.AppImage`
+- `veil_linux_amd64.deb` / `.rpm`
 - `veil_macos.dmg`
-- `veil_windows.msi`
+- `veil_windows.msi` / `veil_windows.exe`
+- `veil_android.apk` (Android 8.0+)
 
 ### Build from source
 
@@ -93,7 +97,7 @@ docker run -d \
   -p 443:443/udp -p 443:443/tcp \
   -p 127.0.0.1:9090:9090 \
   -v /etc/veil:/etc/veil:ro \
-  ghcr.io/YOUR_ORG/veil-server:latest
+  ghcr.io/dariumi/veil-server:latest
 ```
 
 ### Server configuration
@@ -196,9 +200,10 @@ veil/
 ├── veil-server/        Server binary + Dockerfile
 │   └── config.example.toml
 ├── veil-client/        CLI client + SSH deployment tool
-├── veil-app/           Tauri desktop application
+├── veil-app/           Tauri desktop + Android application
 │   ├── src/            HTML/CSS/JS frontend
-│   └── src-tauri/      Rust backend (Tauri commands)
+│   ├── android/        Android overlay (VeilVpnService.kt, patch.sh)
+│   └── src-tauri/      Rust backend (Tauri commands, JNI bridge)
 └── .github/workflows/  CI/CD: test, Docker push, app release
 ```
 
@@ -212,7 +217,8 @@ veil/
 - [x] Desktop app (Tauri)
 - [ ] TUN/VPN mode (full tunnel)
 - [ ] Kill switch (nftables/pf/WFP)
-- [ ] Mobile clients (iOS, Android)
+- [x] Android app (VpnService + tun2proxy)
+- [ ] iOS client
 - [ ] Multi-hop routing (2-hop, 3-hop)
 - [ ] Zero-knowledge auth
 - [ ] Browser extension
@@ -230,6 +236,14 @@ veil/
 Found a vulnerability? See [SECURITY.md](SECURITY.md).
 
 ---
+
+## Authors
+
+- **dariumi** — [arkoarkonova@gmail.com](mailto:arkoarkonova@gmail.com)
+- **DARIA-agent** — [daria.arkonova@gmail.com](mailto:daria.arkonova@gmail.com)
+- **Daria** — [@dariumi](https://github.com/dariumi)
+
+Part of the [Arkonova Network](https://arkonova.network) project.
 
 ## Contributing
 

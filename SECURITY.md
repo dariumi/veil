@@ -4,13 +4,14 @@
 
 | Version | Supported |
 |---------|-----------|
+| 0.2.x   | ✓         |
 | 0.1.x   | ✓         |
 
 ## Reporting a Vulnerability
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Please report security issues by emailing: **security@veil-project.com**
+Please report security issues by emailing: **daria.arkonova@gmail.com**
 
 Include:
 - Description of the vulnerability

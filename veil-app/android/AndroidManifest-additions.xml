@@ -1,0 +1,28 @@
+<!--
+  Additional declarations merged into the generated AndroidManifest.xml by
+  scripts/android-patch.sh after `cargo tauri android init`.
+
+  Required for VPN functionality:
+    - BIND_VPN_SERVICE  : system permission for VpnService subclass
+    - FOREGROUND_SERVICE: run VPN notification in foreground
+    - POST_NOTIFICATIONS: show VPN notification (Android 13+)
+-->
+
+<!-- Merge target: inside <manifest> -->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+<!-- Merge target: inside <application> -->
+<service
+    android:name="com.veilproject.veil.VeilVpnService"
+    android:permission="android.permission.BIND_VPN_SERVICE"
+    android:exported="true"
+    android:foregroundServiceType="specialUse">
+    <intent-filter>
+        <action android:name="android.net.VpnService" />
+    </intent-filter>
+    <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="VPN tunnel" />
+</service>

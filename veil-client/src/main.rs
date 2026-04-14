@@ -11,6 +11,8 @@ mod transport;
 mod tui;
 mod tunnel;
 
+use deploy::{DeployCommands, ServerCommands};
+
 #[derive(Parser, Debug)]
 #[command(
     name = "veil",
@@ -19,133 +21,90 @@ mod tunnel;
     long_about = None,
 )]
 struct Cli {
-    /// Config file path
     #[arg(short, long, default_value = "~/.config/veil/config.toml")]
     config: PathBuf,
-
-    /// Verbose output
     #[arg(short, long)]
     verbose: bool,
-
     #[command(subcommand)]
     command: Commands,
 }
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Connect to a Veil server (VPN or proxy mode)
     Connect {
-        /// Server address (host:port) or profile name
         server: Option<String>,
-        /// Authentication token
-        #[arg(short, long)]
-        token: Option<String>,
-        /// Use proxy mode instead of VPN (TUN) mode
-        #[arg(long)]
-        proxy: bool,
-        /// Traffic profile: balanced, realtime, throughput, stealth
-        #[arg(long, default_value = "balanced")]
-        profile: String,
+        #[arg(short, long)] token: Option<String>,
+        #[arg(long)] proxy: bool,
+        #[arg(long, default_value = "balanced")] profile: String,
     },
-
-    /// Disconnect from the current server
     Disconnect,
-
-    /// Show connection status
     Status,
-
-    /// Deploy a self-hosted Veil server via SSH
-    Deploy {
-        #[command(subcommand)]
-        action: DeployCommands,
-    },
-
-    /// Manage your self-hosted server (users, config, etc.)
-    Server {
-        #[command(subcommand)]
-        action: ServerCommands,
-    },
-
-    /// Interactive setup wizard (first-time setup)
+    Deploy { #[command(subcommand)] action: CliDeploy },
+    Server { #[command(subcommand)] action: CliServer },
     Setup,
-
-    /// Show/edit client configuration
-    Config {
-        #[command(subcommand)]
-        action: Option<ConfigCommands>,
-    },
+    Config { #[command(subcommand)] action: Option<CliConfig> },
 }
 
 #[derive(Subcommand, Debug)]
-enum DeployCommands {
-    /// Install Veil server on a remote machine via SSH
+enum CliDeploy {
     Install {
-        /// Remote server address (user@host or host)
         host: String,
-        /// SSH port
-        #[arg(short = 'p', long, default_value = "22")]
-        ssh_port: u16,
-        /// SSH password (or use --key)
-        #[arg(long)]
-        password: Option<String>,
-        /// SSH private key path
-        #[arg(long)]
-        key: Option<PathBuf>,
-        /// Veil port to listen on
-        #[arg(long, default_value = "443")]
-        veil_port: u16,
-        /// Domain for TLS SNI (optional)
-        #[arg(long)]
-        domain: Option<String>,
+        #[arg(short = 'p', long, default_value = "22")] ssh_port: u16,
+        #[arg(long)] password: Option<String>,
+        #[arg(long)] key: Option<PathBuf>,
+        #[arg(long, default_value = "443")] veil_port: u16,
+        #[arg(long)] domain: Option<String>,
     },
-
-    /// Uninstall Veil server from a remote machine
     Uninstall { host: String },
-
-    /// Check server status via SSH
     Status { host: String },
-
-    /// Update server to the latest version
     Update { host: String },
 }
 
 #[derive(Subcommand, Debug)]
-enum ServerCommands {
-    /// List users / tokens
+enum CliServer {
     ListUsers,
-    /// Create a new user token
-    AddUser {
-        label: String,
-        #[arg(long)]
-        admin: bool,
-        #[arg(long)]
-        expires: Option<String>,
-    },
-    /// Remove a user token
+    AddUser { label: String, #[arg(long)] admin: bool, #[arg(long)] expires: Option<String> },
     RemoveUser { id: String },
-    /// Generate a short-lived invite link
     Invite,
-    /// Show active sessions
     Sessions,
-    /// Change server port
     SetPort { port: u16 },
-    /// Reload server configuration
     Reload,
-    /// Show server logs (last N lines)
-    Logs {
-        #[arg(short, long, default_value = "50")]
-        lines: u32,
-    },
+    Logs { #[arg(short, long, default_value = "50")] lines: u32 },
 }
 
 #[derive(Subcommand, Debug)]
-enum ConfigCommands {
-    /// Show current config
+enum CliConfig {
     Show,
-    /// Set a config value
     Set { key: String, value: String },
-    /// Reset to defaults
     Reset,
+}
+
+impl From<CliDeploy> for DeployCommands {
+    fn from(c: CliDeploy) -> Self {
+        match c {
+            CliDeploy::Install { host, ssh_port, password, key, veil_port, domain } =>
+                DeployCommands::Install { host, ssh_port, password, key, veil_port, domain },
+            CliDeploy::Uninstall { host } => DeployCommands::Uninstall { host },
+            CliDeploy::Status { host } => DeployCommands::Status { host },
+            CliDeploy::Update { host } => DeployCommands::Update { host },
+        }
+    }
+}
+
+impl From<CliServer> for ServerCommands {
+    fn from(c: CliServer) -> Self {
+        match c {
+            CliServer::ListUsers => ServerCommands::ListUsers,
+            CliServer::AddUser { label, admin, expires } =>
+                ServerCommands::AddUser { label, admin, expires },
+            CliServer::RemoveUser { id } => ServerCommands::RemoveUser { id },
+            CliServer::Invite => ServerCommands::Invite,
+            CliServer::Sessions => ServerCommands::Sessions,
+            CliServer::SetPort { port } => ServerCommands::SetPort { port },
+            CliServer::Reload => ServerCommands::Reload,
+            CliServer::Logs { lines } => ServerCommands::Logs { lines },
+        }
+    }
 }
 
 #[tokio::main]
@@ -162,41 +121,26 @@ async fn main() -> Result<()> {
         .init();
 
     match cli.command {
-        Commands::Connect {
-            server,
-            token,
-            proxy,
-            profile,
-        } => {
+        Commands::Connect { server, token, proxy, profile } => {
             modes::connect(server, token, proxy, &profile).await?;
         }
-
-        Commands::Disconnect => {
-            modes::disconnect().await?;
-        }
-
-        Commands::Status => {
-            modes::status().await?;
-        }
-
-        Commands::Deploy { action } => {
-            deploy::handle(action).await?;
-        }
-
+        Commands::Disconnect => modes::disconnect().await?,
+        Commands::Status => modes::status().await?,
+        Commands::Deploy { action } => deploy::handle(action.into()).await?,
         Commands::Server { action } => {
             let cfg = config::ClientConfig::load_or_default(&cli.config)?;
-            let server_url = cfg.management_url().ok_or_else(|| {
-                anyhow::anyhow!("No server configured. Run `veil deploy install` first.")
-            })?;
-            deploy::server_manage(action, &server_url, &cfg.admin_token()?).await?;
+            let url = cfg.management_url()
+                .ok_or_else(|| anyhow::anyhow!("No server configured"))?;
+            deploy::server_manage(action.into(), &url, &cfg.admin_token()?).await?;
         }
-
-        Commands::Setup => {
-            tui::setup_wizard().await?;
-        }
-
+        Commands::Setup => tui::setup_wizard().await?,
         Commands::Config { action } => {
-            config::handle_config_command(action, &cli.config)?;
+            let a = action.map(|c| match c {
+                CliConfig::Show => config::ConfigAction::Show,
+                CliConfig::Set { key, value } => config::ConfigAction::Set { key, value },
+                CliConfig::Reset => config::ConfigAction::Reset,
+            });
+            config::handle_config_command(a, &cli.config)?;
         }
     }
 
