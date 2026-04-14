@@ -94,6 +94,7 @@ pub mod android {
     use super::*;
     use std::collections::HashMap;
     use std::net::{IpAddr, SocketAddr};
+    use std::os::fd::FromRawFd;
     use std::os::unix::io::RawFd;
     use std::sync::Arc;
     use tokio::io::unix::AsyncFd;

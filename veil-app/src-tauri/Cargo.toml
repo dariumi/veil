@@ -33,7 +33,7 @@ tracing    = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Desktop-only
-[target.'cfg(desktop)'.dependencies]
+[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
 tauri-plugin-autostart = "2"
 
 # Android-only
