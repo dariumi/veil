@@ -248,6 +248,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
+        with:
+          pattern: veil-*
 
       - name: Create release
         uses: softprops/action-gh-release@v2
